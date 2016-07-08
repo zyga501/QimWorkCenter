@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qimpay.database.mapping.weixin.wxbill">
+    <select id="getWxbillById" parameterType="long" resultType="java.util.HashMap">
+      SELECT * FROM Wxbill WHERE id=#{id} order by a.id desc
+    </select>
+    <select id="getWxbillBywxorder" parameterType="String" resultType="java.util.HashMap">
+        SELECT * FROM Wxbill WHERE wxorder=#{wxorder}
+    </select>
+    <select id="getBillInfoListByMap" parameterType="java.util.HashMap" resultType="java.util.LinkedHashMap">
+        select <if test="checkbill!=null">case when c.id is null then '' ELSE 'checked' end as checkbox,</if> tradetime as 交易时间,submch as 商户号, bzorder as 订单号,totalmoney as 金额,fee as 手续费,a.rate as 费率
+        from Wxbill a inner join merchantinfo b on a.mchid=b.mchid
+        <if test="checkbill!=null">
+            LEFT  JOIN weixinpayment.orderinfo c on c.transactionid=a.wxorder
+        </if>
+        <where>
+            b.id = #{merchantid}
+            <if test="startdate != null">
+                and tradetime > #{startdate}
+            </if>
+            <if test="enddate != null"><![CDATA[
+                and tradetime < #{enddate}
+                ]]>
+            </if>
+            <if test="submchid != null">
+                and submch  = #{submchid}
+            </if>
+            <if test="bzorder != null">
+                and bzorder = #{bzorder}
+            </if>
+            <if test="submchlist != null">
+                and submch in (${submchlist})
+            </if>
+            <if test="totalFee != null"> <![CDATA[
+                and totalmoney   ${totalFee}
+                ]]>
+            </if>
+        </where>
+        order by a.id desc
+    </select>
+    <select id="getWxbillSum" parameterType="java.util.HashMap" resultType="java.util.HashMap">
+        select sum(totalmoney) as totalsum ,sum(fee)  as ratefee
+        from Wxbill a inner join merchantinfo.submerchantuser b on a.createuser=b.id inner join submerchantinfo c  on c.id=b.submerchantid
+        left join platment.submerchant d on d.submchid=c.subid left join platment.userinfo e
+        on d.xid=e.id
+        <where>
+            c.merchantid = #{merchantid}
+            <if test="startdate != null">
+                and createtime > #{startdate}
+            </if>
+            <if test="enddate != null"><![CDATA[
+                and createtime < #{enddate}
+                ]]>
+            </if>
+            <if test="submchid != null">
+                and submch  = #{submchid}
+            </if>
+            <if test="bzorder != null">
+                and bzorder = #{bzorder}
+            </if>
+            <if test="storename != null">
+                and storename like CONCAT('%','${storename}','%' )
+            </if>
+            <if test="submchlist != null">
+                and submch in (${submchlist})
+            </if>
+            <if test="uname != null">
+                and uname = #{uname}
+            </if>
+        </where>
+    </select>
+    <insert id="insertbill" parameterType="java.util.HashMap"  >
+        insert into  Wxbill (tradetime,ghid,mchid,submch,deviceid,wxorder,bzorder,openid,tradetype,tradestatus,bank,currency,totalmoney,redpacketmoney,
+        wxrefund,bzrefund,refundmoney,redpacketrefund,refundtype,refundstatus,productname,bzdatapacket,fee,rate) values
+        (#{tradetime},#{ghid},#{mchid},#{submch},#{deviceid},#{wxorder},#{bzorder},#{openid},#{tradetype},
+#{tradestatus},#{bank},#{currency},#{totalmoney},#{redpacketmoney},#{wxrefund},#{bzrefund},#{refundmoney},
+#{redpacketrefund},#{refundtype},#{refundstatus},#{productname},'',#{fee},#{rate})
+    </insert>
+</mapper>

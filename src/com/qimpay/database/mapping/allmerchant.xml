@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qimpay.database.mapping.allmerchant">
+    <select id="getAllweixinsubmerchant" parameterType="java.util.HashMap" resultType="java.util.HashMap">
+        SELECT a.id,a.subid,b.name,d.unick FROM weixinpayment.submerchantinfo a inner join merchantinfo.submerchant b on  a.id=b.id left join platment.submerchant c
+        on c.submchid=a.subid left join platment.userinfo d on d.id=c.xid
+        <where>
+
+            <if test="submchid != null">
+                and  a.subid like CONCAT('%','${submchid}','%' )
+            </if>
+            <if test="storename != null">
+                and  b.name  like CONCAT('%','${storename}','%' )
+            </if>
+        </where>
+</select>
+    <select id="getweixinsubmerchantByUid" parameterType="java.util.HashMap" resultType="java.util.HashMap">
+        SELECT c.name as 商户,a.subid 商户号 FROM weixinpayment.submerchantinfo a,platment.submerchant b,merchantinfo.submerchant c,platment.userinfo d
+        <where>
+            a.subid=b.submchid and c.id=a.id and d.id=b.xid
+            <if test="submchid != null">
+                and  b.submchid like CONCAT('%','${submchid}','%' )
+            </if>
+            <if test="storename != null">
+                and  c.name  like CONCAT('%','${storename}','%' )
+            </if>
+            <if test="uid != null">
+                and b.xid=#{uid}
+            </if>
+            <if test="salemanid != null">
+                and b.xid=#{salemanid}
+            </if>
+        </where>
+    </select>
+    <select id="getweixinsubmerchantuserBySid" parameterType="long" resultType="java.util.HashMap">
+      SELECT * FROM merchantinfo.submerchant WHERE submerchantid=#{id}
+    </select>
+
+    <insert id="insertMerchantLink" parameterType="java.util.HashMap"  >
+        insert into  platment.submerchant (xid,submchid) values
+        <foreach item="item"   collection="itemlist" open="" separator="," close="">
+            (#{sid},#{item})
+        </foreach>
+    </insert>
+
+    <delete id="deleteMerchantLink" parameterType="java.util.List"  >
+        DELETE from  platment.submerchant  where submchid in
+        <foreach item="item"    collection="list" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </delete>
+</mapper>

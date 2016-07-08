@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qimpay.database.mapping.menutree">
+    <select id="getAllMenuNode"  resultMap="menuTreeResult">
+        SELECT * FROM menutree
+    </select>
+    <select id="getMenuNodeByPreId" parameterType="java.util.HashMap" resultType="java.util.LinkedHashMap">
+      SELECT a.* FROM menutree a,permission b  WHERE a.id=b.menuid and a.preid=#{preid} and b.roleid=#{roleid}
+    </select>
+    <select id="getMenuNodeByUid" parameterType="long"   resultMap="menuTreeResult">
+        SELECT distinct c.* FROM menutree c,menutree a,permission b WHERE c.id=a.preid and a.id=b.menuid and roleid=#{roleid}
+    </select>
+    <resultMap type="com.qimpay.database.MenuTree" id="menuTreeResult">
+        <id property="id" column="id" jdbcType="BIGINT" />
+        <result property="preid" column="preid" jdbcType="BIGINT"/>
+        <result property="menuname" column="menuname" jdbcType="VARCHAR"/>
+        <result property="webpath" column="webpath" jdbcType="VARCHAR"/>
+        <result property="labelico" column="labelico" jdbcType="VARCHAR"/>
+        <result property="menuorder" column="menuorder" jdbcType="BIGINT"/>
+    </resultMap>
+</mapper>

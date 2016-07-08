@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qimpay.database.mapping.weixin.orderInfo">
+    <select id="getOrderInfo" resultMap="orderInfoResult">
+        SELECT * FROM  OrderInfo
+    </select>
+    <select id="getOrderInfoById" parameterType="long" resultMap="orderInfoResult">
+      SELECT * FROM OrderInfo WHERE id=#{id} order by a.id desc
+    </select>
+    <select id="getOrderInfoByTransactionId" parameterType="String" resultMap="orderInfoResult">
+        SELECT * FROM OrderInfo WHERE transactionId=#{transactionId}
+    </select>
+    <select id="getOrderInfoList" parameterType="java.util.HashMap" resultType="java.util.LinkedHashMap">
+        select b.storename as 门店,username as 收银员,outtradeno as 订单号,totalfee/100.00 as 金额,(case  when  round(truncate(totalfee*rate,1),0)> 0  then   round(truncate(totalfee*rate,1),0) else 0 end  )/100.00  as 手续费,
+        cast(createtime as CHAR) AS 时间 from OrderInfo a inner join merchantinfo.submerchantuser b  on a.createuser=b.id
+        inner join submerchantinfo c  on c.id=b.submerchantid  left join platment.submerchant d on d.submchid=c.subid left join platment.userinfo e
+        on d.xid=e.id
+        <where>
+            c.merchantid = #{merchantid}
+            <if test="startdate != null">
+                and createtime > #{startdate}
+            </if>
+            <if test="enddate != null"><![CDATA[
+                and createtime < #{enddate}
+                ]]>
+            </if>
+            <if test="submchid != null">
+                and a.submchid  = #{submchid}
+            </if>
+            <if test="outtradeno != null">
+                and outtradeno = #{outtradeno}
+            </if>
+            <if test="storename != null">
+                and storename like CONCAT('%','${storename}','%' )
+            </if>
+            <if test="submchlist != null">
+                and a.submchid in (${submchlist})
+            </if>
+            <if test="username != null">
+                and username = #{username}
+            </if>
+            <if test="totalFee != null"> <![CDATA[
+                and totalFee/100.00   ${totalFee}
+                ]]>
+            </if>
+            <if test="uname != null">
+                and uname = #{uname}
+            </if>
+        </where>
+        order by a.id desc
+    </select>
+    <select id="getOrderInfoSum" parameterType="java.util.HashMap" resultType="java.util.HashMap">
+        select sum(totalfee)/100.00 as totalsum ,sum(case  when  round(truncate(totalfee*rate,1),0) > 0 then  round(truncate(totalfee*rate,1),0) else 0 end  )/100.00  as ratefee
+        from OrderInfo a inner join merchantinfo.submerchantuser b on a.createuser=b.id inner join submerchantinfo c  on c.id=b.submerchantid
+        left join platment.submerchant d on d.submchid=c.subid left join platment.userinfo e
+        on d.xid=e.id
+        <where>
+            c.merchantid = #{merchantid}
+            <if test="startdate != null">
+                and createtime > #{startdate}
+            </if>
+            <if test="enddate != null"><![CDATA[
+                and createtime < #{enddate}
+                ]]>
+            </if>
+            <if test="submchid != null">
+                and a.submchid  = #{submchid}
+            </if>
+            <if test="outtradeno != null">
+                and outtradeno = #{outtradeno}
+            </if>
+            <if test="storename != null">
+                and storename like CONCAT('%','${storename}','%' )
+            </if>
+            <if test="submchlist != null">
+                and a.submchid in (${submchlist})
+            </if>
+            <if test="totalFee != null"> <![CDATA[
+                and totalFee/100.00   ${totalFee}
+                ]]>
+            </if>
+            <if test="username != null">
+                and username = #{username}
+            </if>
+            <if test="uname != null">
+                and uname = #{uname}
+            </if>
+        </where>
+    </select>
+    <select id="getOrderInfoListByDate" parameterType="java.util.HashMap"  resultMap="orderInfoResult">
+            SELECT * FROM OrderInfo WHERE createuser=#{createuser} and createtime between #{startdate}  and #{enddate} and submchid in (${submchlist})
+    </select>
+    <select id="getOrderExpListByDate" parameterType="java.util.HashMap"  resultType="java.util.HashMap">
+        SELECT body 附记,transactionId as 微信订单号,outTradeNo 订单号,bankType 结构银行,totalFee 金额【分】,timeEnd 时间
+          FROM OrderInfo WHERE createuser=#{createuser} and createtime between #{startdate}  and #{enddate}
+    </select>
+    <select id="getOrderStatistics" parameterType="java.util.HashMap"  resultType="java.util.HashMap">
+        select  CONCAT(IFNULL(unick,''),'[',IFNULL(uname,''),']') as '代理/销售' ,COUNT(*) as 笔数,SUM(totalfee)/100.00 as 金额 from
+        orderinfo c inner join submerchantinfo d on c.submchid=d.subid LEFT join platment.submerchant b on b.submchid=c.subMchId  left join   platment.userinfo a on   a.id=b.xid
+        where d.merchantid = #{merchantid}
+            <if test="startdate != null">
+            and createtime > #{startdate}
+            </if>
+            <if test="enddate != null"><![CDATA[
+                and createtime < #{enddate}
+                ]]>
+            </if>
+            <if test="submchid != null">
+                and b.submchid  = #{submchid}
+            </if>
+            <if test="salename != null">
+                and (uname = #{salename} or unick =#{salename})
+            </if>
+            <if test="storename != null">
+                and storename like CONCAT('%','${storename}','%' )
+            </if>
+            <if test="uid != null">
+                and xid = #{uid}
+            </if>
+         group by unick
+    </select>
+    <resultMap type="com.qimpay.database.weixin.OrderInfo" id="orderInfoResult">
+        <id property="id" column="id" jdbcType="BIGINT" />
+        <result property="appid" column="appid" jdbcType="VARCHAR"/>
+        <result property="mchId" column="mchId" jdbcType="VARCHAR"/>
+        <result property="subMchId" column="subMchId" jdbcType="VARCHAR" />
+        <result property="body" column="body" jdbcType="VARCHAR" />
+        <result property="transactionId" column="transactionId" jdbcType="VARCHAR"/>
+        <result property="outTradeNo" column="outTradeNo" jdbcType="VARCHAR"/>
+        <result property="bankType" column="bankType" jdbcType="VARCHAR"/>
+        <result property="totalFee" column="totalFee" jdbcType="INTEGER" />
+        <result property="timeEnd" column="timeEnd" jdbcType="VARCHAR" />
+        <result property="openId" column="openId" jdbcType="VARCHAR" />
+    </resultMap>
+</mapper>
