@@ -17,6 +17,7 @@
         <button type="button" class="btn btn-default btn-xs" onclick="setdate('preweek')">上周</button>
         <button type="button" class="btn btn-default btn-xs" onclick="setdate('thismonth')">本月</button>
         <button type="button" class="btn btn-default btn-xs" onclick="setdate('premonth')">上月</button>
+        <button type="button" class="btn btn-danger btn-xs" onclick="exportexcel()">导出</button>
     </div>
 </center>
 <form id="searchform">
@@ -56,6 +57,12 @@
     $().ready(function(){
         setdate('today');
     });
+
+    function exportexcel(){
+        window.location.href="<%=request.getContextPath()%>/weixin/wx!Exportdetail?"
+                + encodeURI(encodeURI(decodeURIComponent($("#searchform").serialize(),true)));
+    }
+
     function setdate(varstr) {
         if (varstr == "today") {
             $("#startdate").val(DateUtil.Format(dateRangeUtil.getCurrentDate()));
