@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/QimPlatment.iml" filepath="$PROJECT_DIR$/QimPlatment.iml" />
+      <module fileurl="file://$PROJECT_DIR$/QimWorkCenter.iml" filepath="$PROJECT_DIR$/QimWorkCenter.iml" />
     </modules>
   </component>
 </project>
